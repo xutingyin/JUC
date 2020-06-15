@@ -1,11 +1,12 @@
 package cn.xutingyin.executor;
 
+import java.time.LocalDateTime;
 import java.util.concurrent.*;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 public class ExecutorDemo {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         // 这三种都是使用Executors 工厂类的静态方法创建ExecutorService 执行器
         /*
          * 使用的LinkedBlockingQueue[无界队列]
@@ -34,5 +35,34 @@ public class ExecutorDemo {
         ExecutorService shelfService = new ThreadPoolExecutor(4, 40, 0L, TimeUnit.MILLISECONDS,
             new LinkedBlockingDeque<>(1024), nameThreadFactory, new ThreadPoolExecutor.AbortPolicy());
 
+        shelfService.execute(new Runnable() {
+            @Override
+            public void run() {
+                int i = 0;
+                do {
+                    System.out.println(LocalDateTime.now());
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    i++;
+                } while (i < 10);
+            }
+        });
+        Callable callable = new Callable() {
+            @Override
+            public Object call() throws Exception {
+                int sum = 0;
+                for (int i = 0; i < 101; i++) {
+                    sum += i;
+                }
+                return sum;
+            }
+        };
+        Future callableSum = shelfService.submit(callable);
+        Object sum = callableSum.get();
+        System.out.println("sum :" + sum);
+        shelfService.shutdown();
     }
 }
